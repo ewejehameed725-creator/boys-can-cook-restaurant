@@ -167,6 +167,62 @@ app.post("/api/wallet/deposit",auth,async(req,res)=>{
     [req.user.id,amount,reference]);
   res.status(201).json({message:"Deposit created. Connect payment gateway here.",reference,amount});
 });
+app.post("/api/wallet/test-credit", auth, async (req, res) => {
+  if (process.env.TEST_PAYMENTS_ENABLED !== "true") {
+    return res.status(403).json({
+      message: "Test payments are disabled"
+    });
+  }
+
+  const amount = Number(req.body.amount);
+
+  if (!Number.isFinite(amount) || amount < 100) {
+    return res.status(400).json({
+      message: "Minimum test payment is ₦100"
+    });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+
+    const reference = `TEST-${req.user.id}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+
+    await client.query(
+      `UPDATE wallet_accounts
+       SET balance = balance + $1, updated_at = NOW()
+       WHERE user_id = $2`,
+      [amount, req.user.id]
+    );
+
+    await client.query(
+      `INSERT INTO wallet_transactions
+       (user_id, type, amount, reference, status, description)
+       VALUES ($1, 'deposit', $2, $3, 'successful', 'Test payment')`,
+      [req.user.id, amount, reference]
+    );
+
+    await client.query("COMMIT");
+
+    res.status(201).json({
+      success: true,
+      message: "Test payment successful",
+      amount,
+      reference
+    });
+  } catch (e) {
+    await client.query("ROLLBACK");
+
+    console.error("Test payment error:", e);
+
+    res.status(500).json({
+      message: "Unable to process test payment"
+    });
+  } finally {
+    client.release();
+  }
+});
 
 app.get("/api/orders",auth,async(req,res)=>{
   const orders=await db("SELECT id,total,status,delivery_address,created_at FROM orders WHERE user_id=$1 ORDER BY created_at DESC",[req.user.id]);
