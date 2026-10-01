@@ -1,24 +1,727 @@
-const PRODUCTS=[
-{id:1,name:"Jollof Rice",price:2000,emoji:"🍛",desc:"Smoky party-style jollof rice."},
-{id:2,name:"Spaghetti",price:2000,emoji:"🍝",desc:"Tasty spaghetti prepared fresh."},
-{id:3,name:"Chicken",price:1500,emoji:"🍗",desc:"Well-seasoned crispy chicken."},
-{id:4,name:"Fried Rice",price:2500,emoji:"🍚",desc:"Fresh fried rice with vegetables."},
-{id:5,name:"Beef",price:1200,emoji:"🥩",desc:"Tender seasoned beef."},
-{id:6,name:"Chapman",price:1200,emoji:"🥤",desc:"Cold refreshing drink."}
+const API_URL = "https://boys-can-cook-restaurant.onrender.com";
+
+const PRODUCTS = [
+  {
+    id: 1,
+    name: "Jollof Rice",
+    price: 2000,
+    emoji: "🍛",
+    desc: "Smoky party-style jollof rice."
+  },
+  {
+    id: 2,
+    name: "Spaghetti",
+    price: 2000,
+    emoji: "🍝",
+    desc: "Tasty spaghetti prepared fresh."
+  },
+  {
+    id: 4,
+    name: "Fried Rice",
+    price: 2500,
+    emoji: "🍚",
+    desc: "Fresh fried rice with vegetables."
+  },
+  {
+    id: 5,
+    name: "Beef",
+    price: 1200,
+    emoji: "🥩",
+    desc: "Tender seasoned beef."
+  },
+  {
+    id: 6,
+    name: "Chapman",
+    price: 1200,
+    emoji: "🥤",
+    desc: "Cold refreshing drink."
+  }
 ];
-const money=n=>"₦"+Number(n).toLocaleString("en-NG");
-const getCart=()=>JSON.parse(localStorage.getItem("bcc_cart")||"[]");
-const saveCart=c=>{localStorage.setItem("bcc_cart",JSON.stringify(c));updateCartCount()};
-function updateCartCount(){const el=document.getElementById("cartCount");if(el)el.textContent=getCart().reduce((a,b)=>a+b.qty,0)}
-function productCard(p){return `<article class="food-card"><div class="food-image">${p.emoji}</div><div class="food-info"><h3>${p.name}</h3><p>${p.desc}</p><div class="price-row"><span class="price">${money(p.price)}</span><button class="add-btn" onclick="addToCart(${p.id})">＋ Add</button></div></div></article>`}
-function renderMenu(){const a=document.getElementById("featuredMenu"),b=document.getElementById("menuGrid");if(a)a.innerHTML=PRODUCTS.slice(0,3).map(productCard).join("");if(b)b.innerHTML=PRODUCTS.map(productCard).join("")}
-function addToCart(id){let c=getCart(),item=c.find(x=>x.id===id);if(item)item.qty++;else c.push({id,qty:1});saveCart(c);alert("Added to cart!")}
-function renderCart(){const box=document.getElementById("cartItems");if(!box)return;let c=getCart();if(!c.length){box.innerHTML='<div class="empty-state">Your cart is empty. <a href="menu.html" style="color:#df7d13;font-weight:800">Browse menu →</a></div>';document.getElementById("cartTotal").textContent="₦0";return}let total=0;box.innerHTML=c.map(x=>{let p=PRODUCTS.find(p=>p.id===x.id),t=p.price*x.qty;total+=t;return `<div class="cart-item"><div><strong>${p.emoji} ${p.name}</strong><div>${x.qty} × ${money(p.price)}</div></div><button onclick="removeItem(${p.id})">Remove</button></div>`}).join("");document.getElementById("cartTotal").textContent=money(total)}
-function removeItem(id){saveCart(getCart().filter(x=>x.id!==id));renderCart()}
-function getUser(){return JSON.parse(localStorage.getItem("bcc_user")||"null")}
-function initAuth(){const reg=document.getElementById("registerForm");if(reg)reg.onsubmit=e=>{e.preventDefault();let f=new FormData(reg);let user={name:f.get("name"),phone:f.get("phone"),email:f.get("email"),password:f.get("password")};localStorage.setItem("bcc_user",JSON.stringify(user));document.getElementById("authMessage").textContent="Account created. Redirecting...";setTimeout(()=>location.href="account.html",500)};const login=document.getElementById("loginForm");if(login)login.onsubmit=e=>{e.preventDefault();let u=getUser(),f=new FormData(login);if(!u||((f.get("identifier")!==u.email)&&(f.get("identifier")!==u.phone))||f.get("password")!==u.password){document.getElementById("authMessage").textContent="Login details are not correct.";return}localStorage.setItem("bcc_logged_in","1");location.href="account.html"}}
-function initAccount(){const u=getUser();if(!u){location.href="login.html";return}document.getElementById("accountName").textContent=u.name.split(" ")[0];document.getElementById("profileName").textContent=u.name;document.getElementById("profilePhone").textContent=u.phone;document.getElementById("profileEmail").textContent=u.email||"Not added";let bal=Number(localStorage.getItem("bcc_demo_balance")||0);let wb=document.getElementById("walletBalance");if(wb)wb.textContent=money(bal);document.getElementById("logoutBtn").onclick=()=>{localStorage.removeItem("bcc_logged_in");location.href="index.html"}}
-function initWallet(){let bal=Number(localStorage.getItem("bcc_demo_balance")||0);const amount=document.getElementById("walletAmount");if(amount)amount.textContent=money(bal);const btn=document.getElementById("depositBtn");if(btn)btn.onclick=()=>alert("Demo wallet only. The next backend version will connect this button to secure Paystack/Flutterwave payment verification.");}
-function initOrders(){const box=document.getElementById("ordersList");if(!box)return;let orders=JSON.parse(localStorage.getItem("bcc_orders")||"[]");if(orders.length)box.innerHTML=orders.map(o=>`<div class="order-card"><div class="order-top"><strong>Order #${o.id}</strong><span class="status">${o.status}</span></div><p>${o.items} · ${money(o.total)}</p><small>${o.date}</small></div>`).join("")}
-function initCheckout(){const b=document.getElementById("checkoutBtn");if(b)b.onclick=()=>{if(!getUser()){alert("Please create an account or login before checkout.");location.href="login.html";return}let c=getCart();if(!c.length)return;let total=c.reduce((s,x)=>s+PRODUCTS.find(p=>p.id===x.id).price*x.qty,0),orders=JSON.parse(localStorage.getItem("bcc_orders")||"[]");orders.unshift({id:Date.now().toString().slice(-6),status:"Confirmed",items:c.map(x=>`${x.qty}× ${PRODUCTS.find(p=>p.id===x.id).name}`).join(", "),total,date:new Date().toLocaleString()});localStorage.setItem("bcc_orders",JSON.stringify(orders));localStorage.setItem("bcc_cart","[]");location.href="orders.html"}}
-renderMenu();updateCartCount();renderCart();initAuth();initAccount();initWallet();initOrders();initCheckout();
+
+const money = (n) =>
+  "₦" + Number(n || 0).toLocaleString("en-NG");
+
+const getToken = () =>
+  localStorage.getItem("bcc_token");
+
+const getCart = () =>
+  JSON.parse(localStorage.getItem("bcc_cart") || "[]");
+
+const saveCart = (cart) => {
+  localStorage.setItem("bcc_cart", JSON.stringify(cart));
+  updateCartCount();
+};
+
+async function api(path, options = {}) {
+  const headers = {
+    "Content-Type": "application/json",
+    ...(options.headers || {})
+  };
+
+  const token = getToken();
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers
+  });
+
+  let data;
+
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+    throw new Error(data.message || "Something went wrong");
+  }
+
+  return data;
+}
+
+/* =========================
+   CART
+========================= */
+
+function updateCartCount() {
+  const el = document.getElementById("cartCount");
+
+  if (el) {
+    el.textContent = getCart().reduce(
+      (total, item) => total + item.qty,
+      0
+    );
+  }
+}
+
+function productCard(product) {
+  return `
+    <article class="food-card">
+      <div class="food-image">${product.emoji || "🍽️"}</div>
+
+      <div class="food-info">
+        <h3>${product.name}</h3>
+
+        <p>${product.description || product.desc || ""}</p>
+
+        <div class="price-row">
+          <span class="price">${money(product.price)}</span>
+
+          <button
+            class="add-btn"
+            onclick="addToCart(${product.id})"
+          >
+            + Add
+          </button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+async function loadMenu() {
+  const featured = document.getElementById("featuredMenu");
+  const menuGrid = document.getElementById("menuGrid");
+
+  if (!featured && !menuGrid) return;
+
+  try {
+    const products = await api("/api/menu");
+
+    if (featured) {
+      featured.innerHTML = products
+        .slice(0, 3)
+        .map(productCard)
+        .join("");
+    }
+
+    if (menuGrid) {
+      menuGrid.innerHTML = products
+        .map(productCard)
+        .join("");
+    }
+
+    localStorage.setItem(
+      "bcc_products",
+      JSON.stringify(products)
+    );
+
+  } catch (error) {
+    console.error("Menu error:", error);
+
+    if (featured) {
+      featured.innerHTML =
+        `<p class="message">Unable to load menu.</p>`;
+    }
+
+    if (menuGrid) {
+      menuGrid.innerHTML =
+        `<p class="message">Unable to load menu.</p>`;
+    }
+  }
+}
+
+function getProducts() {
+  return JSON.parse(
+    localStorage.getItem("bcc_products") ||
+    JSON.stringify(PRODUCTS)
+  );
+}
+
+function addToCart(id) {
+  const products = getProducts();
+
+  const product = products.find(
+    (item) => Number(item.id) === Number(id)
+  );
+
+  if (!product) {
+    alert("Food item not found.");
+    return;
+  }
+
+  const cart = getCart();
+
+  const existing = cart.find(
+    (item) => Number(item.id) === Number(id)
+  );
+
+  if (existing) {
+    existing.qty++;
+  } else {
+    cart.push({
+      id: Number(id),
+      qty: 1
+    });
+  }
+
+  saveCart(cart);
+
+  alert(`${product.name} added to cart!`);
+}
+
+function renderCart() {
+  const box = document.getElementById("cartItems");
+
+  if (!box) return;
+
+  const cart = getCart();
+  const products = getProducts();
+
+  if (!cart.length) {
+    box.innerHTML = `
+      <div class="empty-state">
+        Your cart is empty.
+        <a
+          href="menu.html"
+          style="color:#df7d13;font-weight:800"
+        >
+          Browse menu →
+        </a>
+      </div>
+    `;
+
+    const totalElement =
+      document.getElementById("cartTotal");
+
+    if (totalElement) {
+      totalElement.textContent = money(0);
+    }
+
+    return;
+  }
+
+  let total = 0;
+
+  box.innerHTML = cart
+    .map((item) => {
+      const product = products.find(
+        (p) => Number(p.id) === Number(item.id)
+      );
+
+      if (!product) return "";
+
+      const itemTotal =
+        Number(product.price) * item.qty;
+
+      total += itemTotal;
+
+      return `
+        <div class="cart-item">
+          <div>
+            <strong>
+              ${product.emoji || "🍽️"}
+              ${product.name}
+            </strong>
+
+            <div>
+              ${item.qty} × ${money(product.price)}
+            </div>
+          </div>
+
+          <button
+            onclick="removeItem(${product.id})"
+          >
+            Remove
+          </button>
+        </div>
+      `;
+    })
+    .join("");
+
+  const totalElement =
+    document.getElementById("cartTotal");
+
+  if (totalElement) {
+    totalElement.textContent = money(total);
+  }
+}
+
+function removeItem(id) {
+  const cart = getCart().filter(
+    (item) => Number(item.id) !== Number(id)
+  );
+
+  saveCart(cart);
+  renderCart();
+}
+
+/* =========================
+   REGISTER
+========================= */
+
+function initRegister() {
+  const form =
+    document.getElementById("registerForm");
+
+  if (!form) return;
+
+  form.onsubmit = async (event) => {
+    event.preventDefault();
+
+    const message =
+      document.getElementById("authMessage");
+
+    const button =
+      form.querySelector("button[type='submit']");
+
+    const formData = new FormData(form);
+
+    const name = formData.get("name")?.trim();
+    const phone = formData.get("phone")?.trim();
+    const email = formData.get("email")?.trim();
+    const password = formData.get("password");
+
+    try {
+      button.disabled = true;
+      button.textContent = "Creating account...";
+
+      const data = await api(
+        "/api/auth/register",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            name,
+            phone,
+            email: email || null,
+            password
+          })
+        }
+      );
+
+      localStorage.setItem(
+        "bcc_token",
+        data.token
+      );
+
+      localStorage.setItem(
+        "bcc_user",
+        JSON.stringify(data.user)
+      );
+
+      message.textContent =
+        "Account created successfully. Redirecting...";
+
+      message.style.color = "green";
+
+      setTimeout(() => {
+        location.href = "account.html";
+      }, 700);
+
+    } catch (error) {
+      message.textContent = error.message;
+      message.style.color = "red";
+
+      button.disabled = false;
+      button.textContent = "Create account";
+    }
+  };
+}
+
+/* =========================
+   LOGIN
+========================= */
+
+function initLogin() {
+  const form =
+    document.getElementById("loginForm");
+
+  if (!form) return;
+
+  form.onsubmit = async (event) => {
+    event.preventDefault();
+
+    const message =
+      document.getElementById("authMessage");
+
+    const button =
+      form.querySelector("button[type='submit']");
+
+    const formData =
+      new FormData(form);
+
+    const identifier =
+      formData.get("identifier")?.trim();
+
+    const password =
+      formData.get("password");
+
+    try {
+      button.disabled = true;
+      button.textContent = "Logging in...";
+
+      const data = await api(
+        "/api/auth/login",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            identifier,
+            password
+          })
+        }
+      );
+
+      localStorage.setItem(
+        "bcc_token",
+        data.token
+      );
+
+      localStorage.setItem(
+        "bcc_user",
+        JSON.stringify(data.user)
+      );
+
+      location.href = "account.html";
+
+    } catch (error) {
+      message.textContent = error.message;
+      message.style.color = "red";
+
+      button.disabled = false;
+      button.textContent = "Login";
+    }
+  };
+}
+
+/* =========================
+   ACCOUNT
+========================= */
+
+async function initAccount() {
+  const accountName =
+    document.getElementById("accountName");
+
+  if (!accountName) return;
+
+  if (!getToken()) {
+    location.href = "login.html";
+    return;
+  }
+
+  try {
+    const data = await api("/api/me");
+
+    const user = data.user;
+
+    localStorage.setItem(
+      "bcc_user",
+      JSON.stringify(user)
+    );
+
+    accountName.textContent =
+      user.name.split(" ")[0];
+
+    const profileName =
+      document.getElementById("profileName");
+
+    const profilePhone =
+      document.getElementById("profilePhone");
+
+    const profileEmail =
+      document.getElementById("profileEmail");
+
+    if (profileName)
+      profileName.textContent = user.name;
+
+    if (profilePhone)
+      profilePhone.textContent = user.phone;
+
+    if (profileEmail)
+      profileEmail.textContent =
+        user.email || "Not added";
+
+    await loadWallet();
+
+    const logout =
+      document.getElementById("logoutBtn");
+
+    if (logout) {
+      logout.onclick = () => {
+        localStorage.removeItem("bcc_token");
+        localStorage.removeItem("bcc_user");
+        location.href = "index.html";
+      };
+    }
+
+  } catch (error) {
+    localStorage.removeItem("bcc_token");
+    localStorage.removeItem("bcc_user");
+
+    location.href = "login.html";
+  }
+}
+
+/* =========================
+   WALLET
+========================= */
+
+async function loadWallet() {
+  try {
+    const data =
+      await api("/api/wallet");
+
+    const balance =
+      document.getElementById("walletBalance");
+
+    const amount =
+      document.getElementById("walletAmount");
+
+    if (balance) {
+      balance.textContent =
+        money(data.balance);
+    }
+
+    if (amount) {
+      amount.textContent =
+        money(data.balance);
+    }
+
+    return data;
+
+  } catch (error) {
+    console.error(
+      "Wallet error:",
+      error
+    );
+  }
+}
+
+function initWallet() {
+  const depositButton =
+    document.getElementById("depositBtn");
+
+  if (!depositButton) return;
+
+  depositButton.onclick = async () => {
+    const amount =
+      prompt("Enter deposit amount:");
+
+    if (!amount) return;
+
+    try {
+      const data =
+        await api(
+          "/api/wallet/deposit",
+          {
+            method: "POST",
+            body: JSON.stringify({
+              amount: Number(amount)
+            })
+          }
+        );
+
+      alert(
+        `${data.message}\nReference: ${data.reference}`
+      );
+
+      await loadWallet();
+
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+}
+
+/* =========================
+   ORDERS
+========================= */
+
+async function initOrders() {
+  const box =
+    document.getElementById("ordersList");
+
+  if (!box) return;
+
+  if (!getToken()) {
+    location.href = "login.html";
+    return;
+  }
+
+  try {
+    const orders =
+      await api("/api/orders");
+
+    if (!orders.length) {
+      box.innerHTML = `
+        <div class="empty-state">
+          You have no orders yet.
+        </div>
+      `;
+
+      return;
+    }
+
+    box.innerHTML = orders
+      .map(
+        (order) => `
+          <div class="order-card">
+            <div class="order-top">
+              <strong>
+                Order #${order.id}
+              </strong>
+
+              <span class="status">
+                ${order.status}
+              </span>
+            </div>
+
+            <p>
+              ${money(order.total)}
+            </p>
+
+            <small>
+              ${new Date(
+                order.created_at
+              ).toLocaleString()}
+            </small>
+          </div>
+        `
+      )
+      .join("");
+
+  } catch (error) {
+    box.innerHTML = `
+      <div class="message">
+        ${error.message}
+      </div>
+    `;
+  }
+}
+
+/* =========================
+   CHECKOUT
+========================= */
+
+function initCheckout() {
+  const button =
+    document.getElementById("checkoutBtn");
+
+  if (!button) return;
+
+  button.onclick = async () => {
+    if (!getToken()) {
+      alert(
+        "Please create an account or login before checkout."
+      );
+
+      location.href = "login.html";
+      return;
+    }
+
+    const cart = getCart();
+
+    if (!cart.length) {
+      alert("Your cart is empty.");
+      return;
+    }
+
+    const deliveryAddress =
+      prompt("Enter your delivery address:");
+
+    if (!deliveryAddress) return;
+
+    try {
+      button.disabled = true;
+      button.textContent =
+        "Processing...";
+
+      const items = cart.map(
+        (item) => ({
+          menuItemId: Number(item.id),
+          quantity: Number(item.qty)
+        })
+      );
+
+      const data =
+        await api(
+          "/api/orders",
+          {
+            method: "POST",
+            body: JSON.stringify({
+              items,
+              deliveryAddress
+            })
+          }
+        );
+
+      localStorage.setItem(
+        "bcc_cart",
+        "[]"
+      );
+
+      alert(
+        `Order #${data.order.id} created successfully!`
+      );
+
+      location.href =
+        "orders.html";
+
+    } catch (error) {
+      alert(error.message);
+
+      button.disabled = false;
+      button.textContent =
+        "Checkout";
+    }
+  };
+}
+
+/* =========================
+   START APP
+========================= */
+
+loadMenu();
+updateCartCount();
+renderCart();
+
+initRegister();
+initLogin();
+initAccount();
+initWallet();
+initOrders();
+initCheckout();
