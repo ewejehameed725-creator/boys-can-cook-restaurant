@@ -531,53 +531,7 @@ async function loadWallet() {
   }
 }
 
-async function initWallet() {
-    if (!getToken()) {
-      window.location.href = "login.html";
-      return;
-    }
-  
-    const depositBtn = document.getElementById("depositBtn");
-  
-    await loadWallet();
-  
-    if (depositBtn) {
-      depositBtn.addEventListener("click", async () => {
-        const amountText = prompt("Enter test payment amount (minimum ₦100):");
-  
-        if (!amountText) return;
-  
-        const amount = Number(amountText);
-  
-        if (!Number.isFinite(amount) || amount < 100) {
-          alert("Please enter a valid amount of at least ₦100.");
-          return;
-        }
-  
-        try {
-          depositBtn.disabled = true;
-          depositBtn.textContent = "Processing...";
-  
-          const result = await api("/api/wallet/test-credit", {
-            method: "POST",
-            body: JSON.stringify({ amount })
-          });
-  
-          alert(
-            `✅ Test payment successful!\n\nAmount: ₦${Number(result.amount).toLocaleString()}\nReference: ${result.reference}`
-          );
-  
-          await loadWallet();
-  
-        } catch (error) {
-          alert(`❌ Payment failed: ${error.message}`);
-        } finally {
-          depositBtn.disabled = false;
-          depositBtn.textContent = "＋ Add money";
-        }
-      });
-    }
-  }
+
 
 /* =========================
    ORDERS
