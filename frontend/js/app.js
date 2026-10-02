@@ -10,3 +10,39 @@ function addToCart(id) { const c = getCart(), x = c.find(i => i.id === id); x ? 
 function renderCart() { const box = document.getElementById("cartItems"); if (!box) return; const c = getCart(); if (!c.length) { box.innerHTML = '<div class="empty-state">Your cart is empty. <a href="menu.html">Browse menu →</a></div>'; return } let total = 0; box.innerHTML = c.map(x => { const p = PRODUCTS.find(i => i.id === x.id); total += p.price * x.qty; return `<div class="cart-item"><div><strong>${p.emoji} ${p.name}</strong><div>${x.qty} × ${money(p.price)}</div></div><button onclick="removeItem(${p.id})">Remove</button></div>` }).join(""); document.getElementById("cartTotal").textContent = money(total) }
 function removeItem(id) { saveCart(getCart().filter(x => x.id !== id)); renderCart() }
 setupMobileMenu(); renderMenu(); updateCartCount(); renderCart();
+document.addEventListener("DOMContentLoaded", function () {
+
+  const menuToggle = document.getElementById("menuToggle");
+  const mobileMenu = document.getElementById("mobileMenu");
+  const mobileOverlay = document.getElementById("mobileOverlay");
+  const mobileClose = document.getElementById("mobileClose");
+
+  function openMobileMenu() {
+      if (mobileMenu) mobileMenu.classList.add("open");
+      if (mobileOverlay) mobileOverlay.classList.add("open");
+      document.body.style.overflow = "hidden";
+  }
+
+  function closeMobileMenu() {
+      if (mobileMenu) mobileMenu.classList.remove("open");
+      if (mobileOverlay) mobileOverlay.classList.remove("open");
+      document.body.style.overflow = "";
+  }
+
+  if (menuToggle) {
+      menuToggle.addEventListener("click", openMobileMenu);
+  }
+
+  if (mobileClose) {
+      mobileClose.addEventListener("click", closeMobileMenu);
+  }
+
+  if (mobileOverlay) {
+      mobileOverlay.addEventListener("click", closeMobileMenu);
+  }
+
+  document.querySelectorAll(".mobile-menu a").forEach(function (link) {
+      link.addEventListener("click", closeMobileMenu);
+  });
+
+});

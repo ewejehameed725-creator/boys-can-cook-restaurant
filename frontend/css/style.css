@@ -617,3 +617,132 @@ footer {
         padding: 25px 20px
     }
 }
+/* =========================
+   MOBILE MENU
+========================= */
+
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 9998;
+}
+
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    right: -300px;
+    width: 280px;
+    height: 100vh;
+    background: #111;
+    z-index: 9999;
+    padding: 25px 20px;
+    transition: right 0.3s ease;
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.4);
+    overflow-y: auto;
+}
+
+.mobile-menu.open {
+    right: 0;
+}
+
+.mobile-overlay.open {
+    display: block;
+}
+
+.mobile-close {
+    position: absolute;
+    top: 15px;
+    right: 18px;
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 32px;
+    cursor: pointer;
+}
+
+.mobile-menu-logo {
+    margin-top: 35px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mobile-menu-logo .brand-mark {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ff7a00;
+    color: #111;
+    border-radius: 50%;
+    font-weight: 900;
+    margin-bottom: 10px;
+}
+
+.mobile-menu-logo strong {
+    color: white;
+    font-size: 17px;
+}
+
+.mobile-menu-logo small {
+    color: #ff7a00;
+}
+
+.mobile-menu nav {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.mobile-menu nav a {
+    color: white;
+    text-decoration: none;
+    padding: 16px 10px;
+    border-bottom: 1px solid #292929;
+    font-size: 16px;
+    transition: 0.2s;
+}
+
+.mobile-menu nav a:hover {
+    background: #ff7a00;
+    color: #111;
+    border-radius: 8px;
+}
+
+/* HAMBURGER BUTTON */
+
+.menu-toggle {
+    display: none;
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+/* PHONE */
+
+@media (max-width: 850px) {
+
+    .desktop-nav,
+    .header-actions {
+        display: none !important;
+    }
+
+    .menu-toggle {
+        display: block;
+        margin-left: auto;
+    }
+
+    .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
